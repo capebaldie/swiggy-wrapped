@@ -12,8 +12,12 @@ export default async function OrdersPage() {
   return (
     <div className="px-5 pt-6">
       <header>
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-text-muted">All orders</p>
-        <h1 className="mt-1 font-serif text-3xl tracking-tight text-text-primary">{orders.length} orders</h1>
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-text-muted">
+          All orders
+        </p>
+        <h1 className="mt-1 font-serif text-3xl tracking-tight text-text-primary">
+          {orders.length} orders
+        </h1>
       </header>
       <OrdersListClient orders={orders} />
     </div>

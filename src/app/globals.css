@@ -1,6 +1,29 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui;
+  --font-serif: var(--font-serif), Georgia, serif;
+
+  --color-background: rgb(var(--background));
+  --color-surface: rgb(var(--surface));
+  --color-surface-muted: rgb(var(--surface-muted));
+  --color-text-primary: rgb(var(--text-primary));
+  --color-text-muted: rgb(var(--text-muted));
+  --color-accent: rgb(var(--accent-orange));
+  --color-accent-soft: rgb(var(--accent-orange-soft));
+  --color-border: rgb(var(--border));
+  --color-success: rgb(var(--success));
+  --color-warn: rgb(var(--warn));
+  --color-error: rgb(var(--error));
+
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+
+  --shadow-card: 0 1px 2px rgba(31, 27, 22, 0.04), 0 4px 12px rgba(31, 27, 22, 0.06);
+  --shadow-elevated: 0 8px 24px rgba(31, 27, 22, 0.08);
+}
 
 @layer base {
   :root {
@@ -47,12 +70,20 @@
   ::selection { background: rgb(var(--accent-orange) / 0.25); }
 }
 
-@layer utilities {
-  .scrollbar-hide::-webkit-scrollbar { display: none; }
-  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+@utility scrollbar-hide {
+  &::-webkit-scrollbar { display: none; }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
-  .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.75rem); }
-  .safe-top { padding-top: max(env(safe-area-inset-top), 0.75rem); }
+@utility safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+}
 
-  .text-balance { text-wrap: balance; }
+@utility safe-top {
+  padding-top: max(env(safe-area-inset-top), 0.75rem);
+}
+
+@utility text-balance {
+  text-wrap: balance;
 }

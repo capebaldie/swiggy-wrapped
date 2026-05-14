@@ -21,19 +21,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] max-w-md flex-col bg-background px-6">
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-background px-6">
       <div className="flex flex-1 flex-col justify-center">
         <div className="flex items-center gap-2 text-text-muted">
           <Sparkles className="h-4 w-4" />
-          <span className="text-xs font-semibold uppercase tracking-[0.18em]">Swiggy Wrapped</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.18em]">
+            Swiggy Wrapped
+          </span>
         </div>
         <h1 className="mt-6 font-serif text-5xl leading-[1.05] tracking-tight text-text-primary text-balance">
-          Your year on Swiggy,<br />
+          Your year on Swiggy,
+          <br />
           beautifully summarised.
         </h1>
         <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-text-muted text-balance">
-          Connect your account and see your favourite cuisines, top restaurants, and the late-night
-          habits you didn't know you had.
+          Connect your account and see your favourite cuisines, top restaurants,
+          and the late-night habits you didn't know you had.
         </p>
 
         <div className="mt-12 space-y-3">
