@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 250 247 242;
+    --surface: 255 255 255;
+    --surface-muted: 242 237 229;
+    --text-primary: 31 27 22;
+    --text-muted: 107 99 89;
+    --accent-orange: 224 122 60;
+    --accent-orange-soft: 244 217 197;
+    --border: 232 226 215;
+    --success: 95 138 90;
+    --warn: 201 152 70;
+    --error: 181 86 58;
+  }
+
+  .dark {
+    --background: 26 23 20;
+    --surface: 35 31 27;
+    --surface-muted: 44 39 34;
+    --text-primary: 242 237 229;
+    --text-muted: 163 154 142;
+    --accent-orange: 232 148 101;
+    --accent-orange-soft: 58 42 32;
+    --border: 51 45 39;
+    --success: 127 166 120;
+    --warn: 216 174 94;
+    --error: 208 119 91;
+  }
+
+  html, body {
+    background-color: rgb(var(--background));
+    color: rgb(var(--text-primary));
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100dvh;
+  }
+
+  ::selection { background: rgb(var(--accent-orange) / 0.25); }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.75rem); }
+  .safe-top { padding-top: max(env(safe-area-inset-top), 0.75rem); }
+
+  .text-balance { text-wrap: balance; }
+}
