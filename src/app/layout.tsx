@@ -1,19 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Instrument_Serif } from "next/font/google";
+import { Geist, Fraunces } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { QueryProvider } from "@/lib/query/provider";
 
-const sans = Inter({
+const sans = Geist({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
-const serif = Instrument_Serif({
+const serif = Fraunces({
   subsets: ["latin"],
-  weight: "400",
   variable: "--font-serif",
   display: "swap",
+  axes: ["opsz", "SOFT"],
 });
 
 export const metadata: Metadata = {

@@ -57,8 +57,8 @@
   html, body {
     background-color: rgb(var(--background));
     color: rgb(var(--text-primary));
-    font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   body {
