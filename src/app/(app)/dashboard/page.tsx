@@ -2,8 +2,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
-import { getMcpClient } from "@/lib/mcp";
+import { getAllOrders } from "@/lib/swiggy/orders";
 import { buildDashboardSummary } from "@/lib/analytics";
+import { availableYears, filterByYear } from "@/lib/analytics/years";
+import { YearSelector } from "@/components/YearSelector";
 import { StatCard } from "@/components/StatCard";
 import { SpendingChart } from "@/components/SpendingChart";
 import { OrderCard } from "@/components/OrderCard";
@@ -11,15 +13,26 @@ import { CuisineBadge } from "@/components/CuisineBadge";
 import { formatINR, formatINRCompact } from "@/lib/utils";
 import { CUISINE_LABEL } from "@/types/order";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ year?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/");
 
-  const client = getMcpClient();
-  const orders = await client.fetchAllOrders(session.userId);
+  const allOrders = await getAllOrders(session.userId);
+  const years = availableYears(allOrders);
+  const yearParam = (await searchParams).year;
+  const selected: number | "all" =
+    yearParam && years.includes(Number(yearParam)) ? Number(yearParam) : "all";
+  const orders = filterByYear(allOrders, selected);
+
   const summary = buildDashboardSummary(orders);
   const recent = orders.slice(0, 3);
   const top = summary.topCuisines[0];
+  const scopeSuffix = selected === "all" ? "" : ` in ${selected}`;
+  const wrappedYear = selected === "all" ? years[0] : selected;
 
   return (
     <div className="px-5 pt-6">
@@ -29,7 +42,7 @@ export default async function DashboardPage() {
           <h1 className="mt-1 font-serif text-3xl tracking-tight text-text-primary">Your food year</h1>
         </div>
         <Link
-          href="/wrapped"
+          href={wrappedYear ? `/wrapped?year=${wrappedYear}` : "/wrapped"}
           className="inline-flex h-9 items-center gap-1.5 rounded-full bg-accent px-3.5 text-[12.5px] font-semibold text-white shadow-card"
         >
           <Sparkles className="h-3.5 w-3.5" />
@@ -37,11 +50,13 @@ export default async function DashboardPage() {
         </Link>
       </header>
 
+      <YearSelector years={years} selected={selected} includeAll />
+
       <section className="mt-5 grid grid-cols-2 gap-3">
-        <StatCard label="This month" value={formatINR(summary.monthSpendPaise)} accent />
-        <StatCard label="This year" value={formatINRCompact(summary.yearSpendPaise)} />
+        <StatCard label={selected === "all" ? "Total spent" : `Spent in ${selected}`} value={formatINRCompact(summary.totalSpendPaise)} accent />
         <StatCard label="Orders" value={summary.totalOrders} />
         <StatCard label="Avg order" value={formatINR(summary.aov.aovPaise)} />
+        <StatCard label="Months" value={summary.monthlySpend.length} />
       </section>
 
       <section className="mt-6 rounded-2xl bg-surface p-4 shadow-card">
@@ -65,7 +80,7 @@ export default async function DashboardPage() {
               </div>
             </div>
             <div className="mt-3 text-[13px] text-text-muted text-balance">
-              {CUISINE_LABEL[top.cuisine]} made up {top.percentage}% of your orders this year.
+              {CUISINE_LABEL[top.cuisine]} made up {top.percentage}% of your orders{scopeSuffix}.
             </div>
           </div>
         ) : null}

@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-
-const COOKIE_NAME = "sw_session";
+import { SESSION_COOKIE, SWIGGY_COOKIE } from "@/lib/cookies";
 
 const PROTECTED_PREFIXES = ["/dashboard", "/orders", "/wrapped", "/insights", "/settings"];
 
@@ -10,8 +9,8 @@ export function middleware(req: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   if (!isProtected) return NextResponse.next();
 
-  const cookie = req.cookies.get(COOKIE_NAME);
-  if (!cookie?.value) {
+  // Both are required: the signed session, and the Swiggy cookie the data comes from.
+  if (!req.cookies.get(SESSION_COOKIE)?.value || !req.cookies.get(SWIGGY_COOKIE)?.value) {
     const url = req.nextUrl.clone();
     url.pathname = "/";
     url.searchParams.set("from", pathname);

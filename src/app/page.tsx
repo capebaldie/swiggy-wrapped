@@ -1,25 +1,7 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import { CookieForm } from "@/components/CookieForm";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
-  async function handleSignIn() {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/login", { method: "POST" });
-      if (!res.ok) throw new Error("Login failed");
-      router.push("/dashboard");
-    } catch (e) {
-      console.error(e);
-      setLoading(false);
-    }
-  }
-
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-background px-6">
       <div className="flex flex-1 flex-col justify-center">
@@ -36,27 +18,20 @@ export default function LoginPage() {
         </h1>
         <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-text-muted text-balance">
           Connect your account and see your favourite cuisines, top restaurants,
-          and the late-night habits you didn't know you had.
+          and the late-night habits you didn&apos;t know you had.
         </p>
 
-        <div className="mt-12 space-y-3">
-          <button
-            type="button"
-            onClick={handleSignIn}
-            disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-4 text-base font-semibold text-white shadow-card transition active:scale-[0.99] disabled:opacity-70"
-          >
-            {loading ? "Connecting…" : "Continue with Swiggy"}
-            {!loading && <ArrowRight className="h-4 w-4" />}
-          </button>
-          <p className="text-center text-[11px] text-text-muted">
-            Demo mode — uses sample data, no real account needed.
+        <div className="mt-10 space-y-3">
+          <CookieForm submitLabel="Connect Swiggy account" redirectTo="/dashboard" />
+          <p className="text-center text-[11px] leading-relaxed text-text-muted">
+            Log in on swiggy.com, export cookies with a Cookie-Editor extension, and paste the
+            string. Stored server-side, never shared.
           </p>
         </div>
       </div>
 
       <footer className="pb-6 text-center text-[11px] text-text-muted">
-        Built with the Swiggy MCP for the Builders Club
+        Reads your order history from swiggy.com. Not affiliated with Swiggy.
       </footer>
     </div>
   );

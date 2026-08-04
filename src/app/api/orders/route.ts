@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/auth/session";
-import { getMcpClient } from "@/lib/mcp";
+import { getOrders } from "@/lib/swiggy/orders";
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
@@ -11,8 +11,7 @@ export async function GET(req: NextRequest) {
   const cursor = searchParams.get("cursor") ?? undefined;
   const cuisine = searchParams.get("cuisine") ?? undefined;
 
-  const client = getMcpClient();
-  const { orders, nextCursor } = await client.fetchOrders({
+  const { orders, nextCursor } = await getOrders({
     userId: session.userId,
     limit,
     cursor,

@@ -19,31 +19,10 @@ export { calculateDayOfWeek, calculateHourOfDay, topDayOfWeek } from "./temporal
 export { calculateTopRestaurants, topRestaurant } from "./restaurants";
 export { generateInsights } from "./insights";
 
+// Callers scope `orders` to the selected year before calling — see lib/analytics/years.ts.
 export function buildDashboardSummary(orders: Order[]): DashboardSummary {
-  const now = new Date();
-  const ym = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
-  let monthSpend = 0;
-  let yearSpend = 0;
-  for (const o of orders) {
-    const d = new Date(o.placedAt);
-    if (d.getUTCFullYear() === now.getUTCFullYear()) yearSpend += o.total;
-    const okey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-    if (okey === ym) monthSpend += o.total;
-  }
-
-  // fallback for demo: use the most recent month present in the data if current month has nothing
-  if (monthSpend === 0 && orders.length > 0) {
-    const monthly = calculateMonthlySpend(orders);
-    const last = monthly[monthly.length - 1];
-    monthSpend = last?.totalPaise ?? 0;
-  }
-  if (yearSpend === 0 && orders.length > 0) {
-    yearSpend = orders.reduce((s, o) => s + o.total, 0);
-  }
-
   return {
-    monthSpendPaise: monthSpend,
-    yearSpendPaise: yearSpend,
+    totalSpendPaise: orders.reduce((s, o) => s + o.total, 0),
     totalOrders: orders.length,
     aov: calculateAverageOrderValue(orders),
     monthlySpend: calculateMonthlySpend(orders),

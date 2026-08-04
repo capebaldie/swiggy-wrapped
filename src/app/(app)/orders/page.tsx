@@ -1,13 +1,12 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { getMcpClient } from "@/lib/mcp";
+import { getAllOrders } from "@/lib/swiggy/orders";
 import { OrdersListClient } from "@/components/OrdersListClient";
 
 export default async function OrdersPage() {
   const session = await getSession();
   if (!session) redirect("/");
-  const client = getMcpClient();
-  const orders = await client.fetchAllOrders(session.userId);
+  const orders = await getAllOrders(session.userId);
 
   return (
     <div className="px-5 pt-6">

@@ -1,47 +1,40 @@
 # Swiggy Wrapped
 
-A mobile-first personal food spending analytics dashboard. Connect your Swiggy account (via MCP) and see your year in food — monthly spending, favourite cuisines, top restaurants, ordering habits, and a Spotify-Wrapped-style yearly summary you can share.
-
-Built for the [Swiggy Builders Club](https://mcp.swiggy.com/builders/).
+A mobile-first personal food spending analytics dashboard. Connect your Swiggy account and see your year in food — monthly spending, favourite cuisines, top restaurants, ordering habits, and a Spotify-Wrapped-style yearly summary you can share.
 
 ## Stack
 
-- **Next.js 15** App Router + TypeScript
-- **Tailwind CSS** with a warm-neutral design system (no neon, no glassmorphism)
+- **Next.js 16** App Router + TypeScript (server components; no client data-fetching layer)
+- **Tailwind CSS v4** with a warm-neutral design system
 - **Recharts** for monthly spending charts
 - **Lucide** icons
-- **TanStack Query** for client cache
 - **next-themes** for light/dark mode
-- **Prisma** schema (ready for Postgres in v2)
 - **html-to-image** + Web Share API for the share card
-- **Swiggy MCP** integration layer with a mock client for local development
 
 ## Getting started
 
 ```bash
 pnpm install
-pnpm seed:mock         # generates data/mock-orders.json (140 orders)
-pnpm dev               # http://localhost:3000
+cp .env.example .env    # set SESSION_SECRET
+pnpm dev                # http://localhost:3000
 ```
 
-Then click **Continue with Swiggy** on the login page to sign in as the demo user.
+On the login page, paste your swiggy.com cookie (log in on swiggy.com, then export the cookie
+string with a Cookie-Editor browser extension). It is validated against Swiggy, stored `httpOnly`,
+and never leaves the server.
 
 ### Environment
-
-Copy `.env.example` to `.env` and update the values:
 
 | Variable | Purpose |
 |---|---|
 | `SESSION_SECRET` | HMAC secret for the session cookie. **Change in production.** |
-| `SWIGGY_MCP_MODE` | `"mock"` (default) reads from `data/mock-orders.json`; `"prod"` wires up the real MCP client. |
-| `DATABASE_URL` | Only required for v2 (Postgres + Prisma). |
 
 ## Project structure
 
 ```
 src/
 ├── app/
-│   ├── page.tsx                    # / login
+│   ├── page.tsx                    # / login (paste cookie)
 │   ├── (app)/                      # authenticated group (bottom nav)
 │   │   ├── dashboard/
 │   │   ├── orders/
@@ -49,79 +42,80 @@ src/
 │   │   ├── insights/
 │   │   └── settings/
 │   └── api/
-│       ├── auth/{login,logout,me}/
+│       ├── auth/logout/
+│       ├── settings/swiggy-cookie/ # POST validate+store, DELETE disconnect
 │       ├── orders/
 │       ├── analytics/{summary,wrapped}/
 │       └── insights/
-├── components/                     # StatCard, OrderCard, WrappedStory…
+├── components/                     # StatCard, OrderCard, WrappedStory, CookieForm…
 ├── lib/
+│   ├── cookies.ts                  # cookie names (edge-safe, import-free)
 │   ├── auth/session.ts             # httpOnly cookie + HMAC
-│   ├── mcp/                        # client interface + mock + prod stub
-│   ├── analytics/                  # pure analytics functions
-│   └── query/provider.tsx
+│   ├── swiggy/dapi.ts              # Swiggy order-history fetch + Order mapping
+│   ├── swiggy/orders.ts            # getAllOrders / getOrders / getOrder (+ cache)
+│   └── analytics/                  # pure analytics functions
 ├── types/
 └── middleware.ts                   # protects /dashboard /orders /wrapped …
 
-prisma/schema.prisma                # User, Order, OrderItem, Restaurant, AnalyticsCache
-scripts/generate-mock-orders.ts     # deterministic seed
-data/mock-orders.json               # generated; not committed
+scripts/test-dapi-map.ts            # self-check for the Swiggy → Order mapper
 ```
 
 ## Architecture
 
-### MCP integration
+### Data source
 
-Every API route imports from `@/lib/mcp` — never from a concrete client file. `getMcpClient()` returns:
+Order history comes from Swiggy's own web endpoint, `GET https://www.swiggy.com/dapi/order/all`,
+authenticated by the user's swiggy.com cookie. `src/lib/swiggy/dapi.ts` paginates it (10 orders per
+call, keyed on the last `order_id`) and maps each raw order onto the internal `Order` type.
 
-- **`MockClient`** in development: reads from `data/mock-orders.json`, filters in memory.
-- **`ProdClient`** when `SWIGGY_MCP_MODE=prod`: stubbed today; replace with real Swiggy MCP calls.
+`src/lib/swiggy/orders.ts` is the only module pages and route handlers import from. It reads the
+stored cookie, caches the mapped list in process memory for 5 minutes, and exposes:
 
-To go live, implement the `SwiggyMCPClient` interface in `src/lib/mcp/prod-client.ts` and flip the env var.
+- `getAllOrders(userId)` — everything, newest first
+- `getOrders({ userId, from, to, cuisine, cursor, limit })` — filtered + cursor-paginated
+- `getOrder(userId, orderId)` — one order
+
+An expired cookie yields an empty list rather than an error; the user pastes a fresh one in
+**Settings → Reconnect Swiggy**.
+
+Run the mapper self-check against a real API response:
+
+```bash
+pnpm test:map ~/Downloads/all.json    # skips silently if the file is absent
+```
 
 ### Analytics
 
-All analytics functions in `src/lib/analytics/` are pure: they take `Order[]` and return typed values. No I/O, no DB. Money is stored as integer paise throughout to avoid float drift; the `formatINR` helper renders rupees.
+All analytics functions in `src/lib/analytics/` are pure: they take `Order[]` and return typed
+values. No I/O, no DB. Money is integer paise throughout to avoid float drift; `formatINR` renders
+rupees. Pages scope orders to the selected year with `lib/analytics/years.ts` before summarising.
 
 Insights are rule-based — no AI generation. See `src/lib/analytics/insights.ts` for the rule set.
 
 ### Auth
 
-`/api/auth/login` always signs in the demo user in v1. The session cookie is HMAC-signed with `SESSION_SECRET`. `src/middleware.ts` enforces the cookie on protected routes. Replace `authProvider` in `src/lib/auth/session.ts` to wire up the real Swiggy MCP OAuth.
+There is no user database. The Swiggy cookie *is* the credential: `POST /api/settings/swiggy-cookie`
+validates it, stores it `httpOnly`, and opens an HMAC-signed session keyed on the Swiggy customer
+id. `src/middleware.ts` requires both cookies on protected routes.
 
 ## Available pages
 
-- `/` — Login
-- `/dashboard` — Overview, stat cards, monthly chart, recent orders
+- `/` — Connect
+- `/dashboard` — Overview, stat cards, monthly chart, recent orders, year selector
 - `/orders` — Filterable list of all orders
 - `/orders/[id]` — Itemised bill breakdown
 - `/wrapped` — 7-slide swipeable yearly story with share card
 - `/insights` — Rule-based insights, day/hour heatmaps, top items
-- `/settings` — Profile, theme toggle, logout
-
-## Mock dataset
-
-`scripts/generate-mock-orders.ts` produces 140 orders across 15 Bangalore restaurants, spread across one year. The generator uses a deterministic seed (`seedrandom("swiggy-wrapped-v1")`) so the same dataset is produced on every run. Run it any time to refresh:
-
-```bash
-pnpm seed:mock
-```
+- `/settings` — Profile, theme, reconnect Swiggy, logout
 
 ## Deploy to Vercel
 
 1. Push to GitHub.
 2. Import the repo on Vercel.
 3. Set `SESSION_SECRET` in the project's environment variables.
-4. Add a build step before `next build` to regenerate the mock data: `pnpm seed:mock && next build` — or commit `data/mock-orders.json` if you want a fixed dataset.
 
-That's it. No database required for the demo.
-
-## Going to production
-
-1. Implement `ProdClient` in `src/lib/mcp/prod-client.ts` against the real Swiggy MCP.
-2. Replace `authProvider` in `src/lib/auth/session.ts` with real OAuth.
-3. Provision Postgres, set `DATABASE_URL`, install `@prisma/client`, run migrations.
-4. Restore the Prisma singleton in `src/lib/prisma.ts` (see the comment in that file).
-5. Add an `AnalyticsCache` write path so `/api/analytics/wrapped` doesn't recompute on every request.
+No database required. Note that the 5-minute order cache lives in process memory, so on a
+multi-instance deployment each instance keeps its own — swap it for Redis if that matters.
 
 ## License
 

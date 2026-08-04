@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { getMcpClient } from "@/lib/mcp";
+import { getAllOrders } from "@/lib/swiggy/orders";
 import {
   calculateDayOfWeek,
   calculateHourOfDay,
@@ -15,8 +15,7 @@ import { formatINR, formatINRCompact } from "@/lib/utils";
 export default async function InsightsPage() {
   const session = await getSession();
   if (!session) redirect("/");
-  const client = getMcpClient();
-  const orders = await client.fetchAllOrders(session.userId);
+  const orders = await getAllOrders(session.userId);
   const insights = generateInsights(orders);
   const repeated = calculateRepeatedItems(orders).slice(0, 6);
   const restaurants = calculateTopRestaurants(orders).slice(0, 5);

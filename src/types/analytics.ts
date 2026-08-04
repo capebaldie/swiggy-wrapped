@@ -70,8 +70,7 @@ export interface Insight {
 }
 
 export interface DashboardSummary {
-  monthSpendPaise: number;
-  yearSpendPaise: number;
+  totalSpendPaise: number;
   totalOrders: number;
   aov: AOVStat;
   monthlySpend: MonthlySpendBucket[];

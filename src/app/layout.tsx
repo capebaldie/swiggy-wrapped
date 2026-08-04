@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Fraunces } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
-import { QueryProvider } from "@/lib/query/provider";
 
 const sans = Geist({
   subsets: ["latin"],
@@ -49,7 +48,7 @@ export default function RootLayout({
           defaultTheme="light"
           enableSystem={false}
         >
-          <QueryProvider>{children}</QueryProvider>
+          {children}
         </ThemeProvider>
       </body>
     </html>

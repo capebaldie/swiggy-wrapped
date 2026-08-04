@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
-import { getMcpClient } from "@/lib/mcp";
+import { getOrder } from "@/lib/swiggy/orders";
 import { CuisineBadge } from "@/components/CuisineBadge";
 import { formatINR, formatDate, formatTime } from "@/lib/utils";
 
@@ -10,8 +10,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const session = await getSession();
   if (!session) redirect("/");
   const { id } = await params;
-  const client = getMcpClient();
-  const order = await client.fetchOrderDetails({ userId: session.userId, orderId: id });
+  const order = await getOrder(session.userId, id);
   if (!order) notFound();
 
   return (

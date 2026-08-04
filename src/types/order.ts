@@ -58,12 +58,6 @@ export interface User {
   avatarUrl: string | null;
 }
 
-export interface MockDataset {
-  user: User;
-  restaurants: Restaurant[];
-  orders: Order[];
-}
-
 export const CUISINE_LABEL: Record<Cuisine, string> = {
   NORTH_INDIAN: "North Indian",
   SOUTH_INDIAN: "South Indian",
